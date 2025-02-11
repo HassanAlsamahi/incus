@@ -1144,6 +1144,7 @@ func (c *cmdFile) recursivePushFile(resource remoteResource, source string, targ
 		}
 
 		var readCloser io.ReadCloser
+		paths := []string{targetPath}
 
 		if fInfo.IsDir() {
 			// Directory handling
@@ -1158,6 +1159,7 @@ func (c *cmdFile) recursivePushFile(resource remoteResource, source string, targ
 			args.Type = "symlink"
 			args.Content = bytes.NewReader([]byte(symlinkTarget))
 			readCloser = io.NopCloser(args.Content)
+			paths = append(paths, symlinkTarget)
 		} else {
 			// File handling
 			f, err := os.Open(p)
@@ -1202,7 +1204,7 @@ func (c *cmdFile) recursivePushFile(resource remoteResource, source string, targ
 		}
 
 		logger.Infof("Pushing %s to %s (%s)", p, targetPath, args.Type)
-		err = c.sftpCreateFile(resource, []string{targetPath}, args, true)
+		err = c.sftpCreateFile(resource, paths, args, true)
 		if err != nil {
 			if args.Type != "directory" {
 				progress.Done("")
